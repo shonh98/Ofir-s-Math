@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>משחק מתמטיקה בלחיצות</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #e6f2ff;
+            direction: rtl;
+        }
+        .game-container {
+            background-color: white;
+            width: 500px;
+            margin: 30px auto;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        #problem-text {
+            font-size: 24px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        #timer {
+            font-size: 18px;
+            color: red;
+        }
+        #objects-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .object {
+            width: 60px;
+            height: 60px;
+            background-color: #4CAF50;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 24px;
+            color: white;
+            transition: transform 0.2s;
+        }
+        .object:hover {
+            transform: scale(1.1);
+        }
+        #result, #attempts {
+            font-weight: bold;
+            margin: 10px;
+            font-size: 20px;
+        }
+        #game-over {
+            display: none;
+            background-color: #f9d5e5;
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>משחק מתמטיקה בלחיצות</h1>
+        
+        <div id="timer">10 שניות</div>
+        <div id="problem-text">
+            <span id="first-num"></span>
+            <span id="operator"></span>
+            <span id="second-num"></span>
+            <span>=?</span>
+        </div>
+        <div id="attempts">נסיונות: 5</div>
+        <div id="objects-area"></div>
+        <div id="result"></div>
+        <div id="game-over">
+            <h2>לא נורא, נסה שוב! 🤗</h2>
+            <button onclick="restartGame()">התחל מחדש</button>
+        </div>
+    </div>
+
+    <script>
+        let correctAnswer;
+        let timeLeft = 10;
+        let timer;
+        let attemptsLeft = 5;
+
+        const firstNumEl = document.getElementById('first-num');
+        const secondNumEl = document.getElementById('second-num');
+        const operatorEl = document.getElementById('operator');
+        const objectsArea = document.getElementById('objects-area');
+        const resultDiv = document.getElementById('result');
+        const timerEl = document.getElementById('timer');
+        const attemptsEl = document.getElementById('attempts');
+        const gameOverEl = document.getElementById('game-over');
+
+        function startTimer() {
+            timeLeft = 10;
+            timerEl.textContent = `${timeLeft} שניות`;
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = `${timeLeft} שניות`;
+                if (timeLeft <= 0) {
+                    handleWrongAnswer();
+                }
+            }, 1000);
+        }
+
+        function generateProblem() {
+            objectsArea.innerHTML = '';
+            resultDiv.textContent = '';
+            gameOverEl.style.display = 'none';
+
+            const num1 = Math.floor(Math.random() * 5) + 2;
+            const num2 = Math.floor(Math.random() * 5) + 2;
+            const operations = [
+                { 
+                    symbol: '+',
+                    calculate: () => num1 + num2 
+                },
+                { 
+                    symbol: '-',
+                    calculate: () => num1 - num2 
+                },
+                { 
+                    symbol: '×',
+                    calculate: () => num1 * num2 
+                }
+            ];
+
+            const chosenOperation = operations[Math.floor(Math.random() * operations.length)];
+            
+            firstNumEl.textContent = num1;
+            secondNumEl.textContent = num2;
+            operatorEl.textContent = chosenOperation.symbol;
+
+            correctAnswer = chosenOperation.calculate();
+
+            const possibleAnswers = [
+                correctAnswer,
+                correctAnswer - 1,
+                correctAnswer + 1,
+                correctAnswer + 2
+            ].sort(() => Math.random() - 0.5);
+
+            possibleAnswers.forEach(answer => {
+                const obj = document.createElement('div');
+                obj.classList.add('object');
+                obj.textContent = answer;
+                obj.addEventListener('click', () => checkAnswer(answer));
+                objectsArea.appendChild(obj);
+            });
+
+            startTimer();
+        }
+
+        function handleWrongAnswer() {
+            clearInterval(timer);
+            attemptsLeft--;
+            attemptsEl.textContent = `נסיונות: ${attemptsLeft}`;
+
+            if (attemptsLeft <= 0) {
+                gameOverEl.style.display = 'block';
+            } else {
+                resultDiv.textContent = 'אופס! הזמן נגמר. נסה שוב! ⏰';
+                resultDiv.style.color = 'red';
+                setTimeout(generateProblem, 1000);
+            }
+        }
+
+        function checkAnswer(selectedAnswer) {
+            clearInterval(timer);
+
+            if (selectedAnswer === correctAnswer) {
+                resultDiv.textContent = 'כל הכבוד! תשובה נכונה! 👏';
+                resultDiv.style.color = 'green';
+                setTimeout(generateProblem, 1000);
+            } else {
+                handleWrongAnswer();
+            }
+        }
+
+        function restartGame() {
+            attemptsLeft = 5;
+            attemptsEl.textContent = `נסיונות: ${attemptsLeft}`;
+            generateProblem();
+        }
+
+        generateProblem();
+    </script>
+</body>
+</html>
